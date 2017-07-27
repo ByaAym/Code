@@ -1,0 +1,16 @@
+类代码布局
+｛
+	Public、Const 常量，static readonly 命名同类名 首字母大写
+	Static 静态变量 s_ 开头 首字母小写 后续驼峰
+	protected 成员变量 （private不写）m_开头 跟默认值 首字母小写 后序驼峰
+	内部类型声明（enum、class）命名同类名
+
+	构造函数
+	初始化功能函数
+	
+	其他功能函数
+	
+析构函数或者其他销毁函数
+
+属性｛get；set｝
+｝

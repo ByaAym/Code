@@ -1,0 +1,106 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using UnityEditor;
+using UnityEngine;
+
+public class EditorAssetImportUI: EditorWindow
+{
+    [MenuItem("Tool/TextureImportSetting")]
+    public static void TextureImportSetting()
+    {
+        var searchGUIDs = AssetDatabase.FindAssets("t:texture");
+        Debug.Log(searchGUIDs.Length);
+
+        for(int i=0; i<searchGUIDs.Length; i++)
+        {
+            var path = AssetDatabase.GUIDToAssetPath(searchGUIDs[i]);
+
+            EditorUtility.DisplayProgressBar("ReImport", path, i / (float)searchGUIDs.Length);
+
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+
+            if (importer)
+                importer.SaveAndReimport();
+            else
+                Debug.Log(path, AssetDatabase.LoadMainAssetAtPath(path));
+        }
+
+        EditorUtility.ClearProgressBar();
+    }
+}
+
+public class EditorTemplateWindow : EditorWindow {
+
+    GameObject m_go = null;
+    Vector2 m_scrollPos = Vector2.zero;
+    string m_text = "";
+
+    //GUIStyle normalStyle = new GUIStyle(GUI.skin.button)
+    //{
+    //    fontSize = 16,
+    //    fontStyle = FontStyle.Bold
+    //};
+
+    [MenuItem("Tool/TemplateWindow")]
+    static void OpenWindow()
+    {
+        EditorTemplateWindow window = EditorWindow.GetWindow<EditorTemplateWindow>();
+        window.minSize = new Vector2(600, 400);
+    }
+
+    public void OnGUI()
+    {
+        using (new EditorGUILayout.VerticalScope())
+        {
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Path: ", GUILayout.Width(50));
+            m_text = EditorGUILayout.TextField(m_text, GUILayout.Height(20));
+            EditorGUILayout.EndHorizontal();
+
+            m_go = EditorGUILayout.ObjectField("Select GameObject: ", m_go, typeof(GameObject), true) as GameObject;
+            
+            m_scrollPos = EditorGUILayout.BeginScrollView(m_scrollPos);
+            for(int i=0; i<100; i++)
+            {
+                if (!m_go)
+                    continue;
+                if(GUILayout.Button(m_go.name))
+                {
+                    GameObject parent = PrefabUtility.GetPrefabParent(m_go) as GameObject;
+                    if (parent)
+                    {
+                        EditorGUIUtility.PingObject(parent);
+                        Selection.activeObject = parent;
+                        EditorUtility.SetDirty(parent); //设置变更过的资源
+                        AssetDatabase.SaveAssets();//保存变更的资源
+                        AssetDatabase.Refresh();//刷新资源 貌似在Mac不起作用
+                        string path = AssetDatabase.GetAssetPath(parent);
+                        m_text = path;//Path.GetExtension(path);
+                    }
+                    else
+                    {
+                        EditorGUIUtility.PingObject(m_go);
+                        Selection.activeObject = m_go;
+                    }
+                }
+            }
+            EditorGUILayout.EndScrollView();
+        }
+    }
+
+    void OnSelectionChange()
+    {
+        object[] selection = Selection.objects;
+
+        if (selection.Length == 0)
+            m_text = "请选择";
+
+        for(int i=0; i<selection.Length; i++)
+        {
+            //string path = AssetDatabase.GetAssetPath(selection[i] as Object);
+            //Debug.Log((selection[i] as GameObject).name);
+        }
+    }
+
+}
